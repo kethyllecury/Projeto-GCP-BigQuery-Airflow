@@ -12,20 +12,16 @@ with DAG(
     
     ativar_funcao = HttpOperator(
         task_id="ativar_cloud_function",
-        method="POST",
+        method="GET",
         http_conn_id="google_function_api",
         endpoint="acessar_cep?cep=05312-903",    
         headers={"Content-Type": "application/json"},
-        log_response=True
-    )
+        log_response=True)
 
-    consultar_cep = BigQueryCheckOperator(
+    verificar_bigquery = BigQueryCheckOperator(
         task_id="consultar_cep_bigquery",
-        sql='SELECT COUNT(*) > 0 FROM `projetogpc.LANDING_API.endereco_ceps`',
+        sql='select count(*) as total FROM `projetogpc.LANDING_API.endereco_ceps`',
         use_legacy_sql=False,
-        location='southamerica-east1',
+        location='southamerica-east1')
 
-    )
-
-    ativar_funcao >> consultar_cep
-
+    ativar_funcao >> verificar_bigquery 
