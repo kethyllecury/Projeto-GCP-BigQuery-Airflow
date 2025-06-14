@@ -1,0 +1,31 @@
+from airflow import DAG
+from airflow.providers.http.operators.http import HttpOperator
+from airflow.providers.google.cloud.operators.bigquery import BigQueryCheckOperator
+from datetime import datetime
+
+with DAG(
+    dag_id="pipeline",
+    start_date=datetime(2025, 1, 1),
+    schedule='@daily',
+    catchup=False,
+) as dag:
+    
+    ativar_funcao = HttpOperator(
+        task_id="ativar_cloud_function",
+        method="POST",
+        http_conn_id="google_function_api",
+        endpoint="acessar_cep?cep=05312-903",    
+        headers={"Content-Type": "application/json"},
+        log_response=True
+    )
+
+    consultar_cep = BigQueryCheckOperator(
+        task_id="consultar_cep_bigquery",
+        sql='SELECT COUNT(*) > 0 FROM `projetogpc.LANDING_API.endereco_ceps`',
+        use_legacy_sql=False,
+        location='southamerica-east1',
+
+    )
+
+    ativar_funcao >> consultar_cep
+
