@@ -38,9 +38,16 @@ Exemplo de endpoint:
 - O pipeline é orquestrado por uma DAG no Apache Airflow.
 - **Funcionalidades da DAG:**
   - Aciona a Cloud Function por meio do `HttpOperator`.
+  - Verifica se os dados foram carregados corretamente no BigQuery utilizando o `BigQueryCheckOperator` com a seguinte query:
+
+    ```sql
+    SELECT COUNT(*) AS total FROM `projetogpc.LANDING_API.endereco_ceps`
+    ```
+
+  - A DAG prossegue apenas se o total de registros for maior que zero.
   - Registra logs e erros para monitoramento e auditoria.
-  - Agendamento definido com a expressão cron `0 0 * * *`, executando diariamente à meia-noite.
-- Conexão HTTP no Airflow (`google_function_api`) permite integração direta e segura com a Cloud Function.
+  - O agendamento é definido com a expressão cron `0 0 * * *`, executando diariamente à meia-noite.
+- A conexão HTTP no Airflow (`google_function_api`) permite integração direta e segura com a Cloud Function.
 
 ## Como Executar
 
