@@ -7,7 +7,7 @@ tabela_destino = 'projetogpc.LANDING_API.endereco_ceps'
 
 @functions_framework.http
 def acessar_cep(request):
-    sql = "SELECT cep FROM `projetogpc.LANDING_API.ceps`"
+    sql = "select cep from `projetogpc.LANDING_API.ceps`"
     query = client.query(sql)
 
     for row in query:
@@ -16,14 +16,14 @@ def acessar_cep(request):
         response = requests.get(url)
         dados = response.json()
 
-        print(f"Inserindo dados do CEP: {cep}")
+        print(f"cep inserido: {cep}")
         inserir_dados(dados)
 
-    return "Processado"
+    return "dados processados no bigquery"
 
 def inserir_dados(dados):
-    errors = client.insert_rows_json(tabela_destino, [dados])
-    if errors:
-        print("Erro ao inserir dados:", errors)
-    else:
-        print("Dados inseridos com sucesso")
+    try:
+        client.insert_rows_json(tabela_destino, [dados])
+        print("dados inseridos")
+    except Exception as e:
+        print("erro ao inserir dados:", e)
