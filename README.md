@@ -14,85 +14,61 @@ Exemplo de endpoint:
 
 ## Componentes da Solução
 
-## 1. Extração e Validação de Dados (Python & Cloud Function)
-Um script Python é implementado como Google Cloud Function, executado sob demanda via requisição HTTP.
+### 1. Extração e Validação de Dados (Python & Cloud Function)
 
-A função acessa automaticamente os CEPs cadastrados na tabela LANDING_API.ceps no BigQuery.
+- Um script Python é implementado como Google Cloud Function, executado sob demanda via requisição HTTP.
+- A função acessa automaticamente os CEPs cadastrados na tabela `LANDING_API.ceps` no BigQuery.
+- Para cada CEP:
+  - Realiza uma requisição à API ViaCEP.
+  - Valida o retorno e descarta respostas inválidas (como CEPs inexistentes).
+  - Os dados válidos são estruturados e enviados para o BigQuery.
+- Execução totalmente serverless, escalável e sem necessidade de infraestrutura dedicada.
 
-Para cada CEP:
+### 2. Armazenamento de Dados (Google BigQuery)
 
-Realiza uma requisição à API ViaCEP.
+- **Dataset:** `LANDING_API`
+- **Tabelas envolvidas:**
+  - `ceps`: armazena os CEPs a serem consultados.
+  - `endereco_ceps`: recebe os dados extraídos e validados da API.
+- Armazenamento estruturado permite análises, cruzamentos com outras bases e integração com ferramentas analíticas ou modelos preditivos.
+- Inserção feita com `insert_rows_json`, respeitando o schema da tabela.
 
-Valida o retorno e descarta respostas inválidas (como CEPs inexistentes).
+### 3. Orquestração com Apache Airflow
 
-Os dados válidos são estruturados e enviados para o BigQuery.
-
-Execução totalmente serverless, escalável e sem necessidade de infraestrutura dedicada.
-
-## 2. Armazenamento de Dados (Google BigQuery)
-Dataset: LANDING_API
-
-Tabelas envolvidas:
-
-ceps: armazena os CEPs a serem consultados.
-
-endereco_ceps: recebe os dados extraídos e validados da API.
-
-Armazenamento estruturado permite análises, cruzamentos com outras bases e integração com ferramentas analíticas ou modelos preditivos.
-
-Inserção feita com insert_rows_json, respeitando o schema da tabela.
-
-## 3. Orquestração com Apache Airflow
-O pipeline é orquestrado por uma DAG no Apache Airflow.
-
-Funcionalidades da DAG:
-
-Aciona a Cloud Function por meio do HttpOperator.
-
-Registra logs e erros para monitoramento e auditoria.
-
-Agendamento definido com a cron expression 0 0 * * *, executando diariamente à meia-noite.
-
-Conexão HTTP no Airflow (google_function_api) permite integração direta e segura com a Cloud Function.
-
+- O pipeline é orquestrado por uma DAG no Apache Airflow.
+- **Funcionalidades da DAG:**
+  - Aciona a Cloud Function por meio do `HttpOperator`.
+  - Registra logs e erros para monitoramento e auditoria.
+  - Agendamento definido com a expressão cron `0 0 * * *`, executando diariamente à meia-noite.
+- Conexão HTTP no Airflow (`google_function_api`) permite integração direta e segura com a Cloud Function.
 
 ## Como Executar
 
-## 1. Deploy da Cloud Function
-Configure seu projeto no Google Cloud com faturamento ativado.
+### 1. Deploy da Cloud Function
 
-Realize o deploy do script main.py como uma Cloud Function com permissão para gravar no BigQuery.
+- Configure seu projeto no Google Cloud com faturamento ativado.
+- Realize o deploy do script `main.py` como uma Cloud Function com permissão para gravar no BigQuery.
+- A função irá:
+  - Consultar a tabela `LANDING_API.ceps` no BigQuery.
+  - Realizar requisições à API ViaCEP com os CEPs retornados.
+  - Inserir os dados retornados na tabela `LANDING_API.endereco_ceps`.
 
-A função irá:
+### 2. Configuração do BigQuery
 
-Consultar a tabela LANDING_API.ceps no BigQuery.
+- Crie o dataset `LANDING_API` no BigQuery.
+- Crie as seguintes tabelas:
+  - `ceps`: tabela com uma coluna `cep` contendo os valores a serem consultados.
+  - `endereco_ceps`: tabela de destino com as colunas compatíveis com o retorno da API ViaCEP (ex.: `cep`, `logradouro`, `bairro`, `localidade`, `uf`, etc.).
 
-Realizar requisições à API ViaCEP com os CEPs retornados.
+### 3. Configuração do Airflow
 
-Inserir os dados retornados na tabela LANDING_API.endereco_ceps.
-
-## 2. Configuração do BigQuery
-Crie o dataset LANDING_API no BigQuery.
-
-Crie as seguintes tabelas:
-
-ceps: tabela com uma coluna cep contendo os valores a serem consultados.
-
-endereco_ceps: tabela de destino com as colunas compatíveis com o retorno da API ViaCEP (ex.: cep, logradouro, bairro, localidade, uf, etc.).
-
-## 3. Configuração do Airflow
-Configure a conexão HTTP chamada google_function_api com:
-
-Host: URL da Cloud Function (ex.: https://gcpfunction-xxxx.region.run.app)
-
-Tipo: HTTP
-
-Autenticação: conforme necessário (sem auth ou com headers personalizados).
-
-Adicione a DAG pipeline.py no diretório dags/ do Airflow.
-
-Agende a DAG conforme desejado ou execute manualmente. O agendamento 0 0 * * * executa diariamente à meia-noite.
-
+- Configure a conexão HTTP chamada `google_function_api` com:
+  - **Host:** URL da Cloud Function (ex.: `https://gcpfunction-xxxx.region.run.app`)
+  - **Tipo:** HTTP
+  - **Autenticação:** conforme necessário (sem auth ou com headers personalizados).
+- Adicione a DAG `pipeline.py` no diretório `dags/` do Airflow.
+- Agende a DAG conforme desejado ou execute manualmente. O agendamento `0 0 * * *` executa diariamente à meia-noite.
+  
 ## Tecnologias Utilizadas
 
 - Python 3.12.9
