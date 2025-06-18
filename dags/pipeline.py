@@ -14,7 +14,7 @@ with DAG(
         task_id="ativar_cloud_function",
         method="GET",
         http_conn_id="google_function_api",
-        endpoint="acessar_cep?cep=05312-903",    
+        endpoint="acessar_cep",    
         headers={"Content-Type": "application/json"},
         log_response=True)
 
