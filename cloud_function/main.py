@@ -1,29 +1,17 @@
 import functions_framework
 import requests
-from google.cloud import bigquery
-
-client = bigquery.Client()
-tabela_destino = 'projetogpc.LANDING_API.endereco_ceps'
 
 @functions_framework.http
 def acessar_cep(request):
-    sql = "select cep from `projetogpc.LANDING_API.ceps`"
-    query = client.query(sql)
+    cep = request.args.get('cep')
 
-    for row in query:
-        cep = row["cep"]
-        url = f'https://viacep.com.br/ws/{cep}/json/'
-        response = requests.get(url)
-        dados = response.json()
+    if not cep:
+        return "Digite o CEP corretamente, por exemplo: 51021-020"
 
-        print(f"cep inserido: {cep}")
-        inserir_dados(dados)
+    url = f'https://viacep.com.br/ws/{cep}/json/'
+    response = requests.get(url)
 
-    return "dados processados no bigquery"
-
-def inserir_dados(dados):
-    try:
-        client.insert_rows_json(tabela_destino, [dados])
-        print("dados inseridos")
-    except Exception as e:
-        print("erro ao inserir dados:", e)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        return f"Falha ao consultar o CEP {cep}"

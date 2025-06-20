@@ -1,0 +1,15 @@
+schema = [
+    {'name': 'cep',         'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'logradouro',  'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'complemento', 'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'bairro',      'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'localidade',  'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'uf',          'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'ibge',        'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'gia',         'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'ddd',         'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'siafi',       'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'unidade',     'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'estado',      'type': 'STRING', 'mode': 'NULLABLE'},
+    {'name': 'regiao',      'type': 'STRING', 'mode': 'NULLABLE'},
+]
