@@ -24,6 +24,26 @@ Exemplo de endpoint:
   - Os dados válidos são estruturados e enviados para o BigQuery.
 - Execução totalmente serverless, escalável e sem necessidade de infraestrutura dedicada.
 
+### `pipeline`
+
+- **Fonte de CEPs**: Tabela BigQuery `LANDING_API.ceps`
+- **Fluxo**:
+  1. Cria a tabela `endereco_ceps` se ela não existir.
+  2. Busca os CEPs do BigQuery.
+  3. Requisita dados via API por CEP.
+  4. Insere os dados retornados no BigQuery.
+  5. Verifica a inserção (checagem com `SELECT COUNT(*)`).
+
+### `pipeline2`
+
+- **Fonte de CEPs**: Variável do Airflow chamada `cep` (em formato JSON)
+- **Fluxo**:
+  1. Cria a tabela `endereco_ceps` se ela não existir.
+  2. Busca os CEPs da variável.
+  3. Requisita dados via API por CEP.
+  4. Insere os dados no BigQuery.
+  5. Verifica se os dados foram inseridos com sucesso.
+
 ### 2. Armazenamento de Dados (Google BigQuery)
 
 - **Dataset:** `LANDING_API`
@@ -92,7 +112,10 @@ Exemplo de endpoint:
 ├── cloud_function/
 │   └── main.py
 ├── dags/
-│   └── pipeline.py        
+│   └── pipeline.py
+│   └── pipeline2.py
+├── schemas/                
+│   └── schema.py       
 ├── keys/                  
 ├── config/                
 ├── logs/                  
